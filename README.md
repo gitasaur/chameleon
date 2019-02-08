@@ -3,7 +3,7 @@ Visual Regression Testing for Front End Applications
 
 ## Install
 
-`npm install @mgrk/charmeleon --save-dev`
+`npm install @mgrk/chameleon --save-dev`
 
 ## Usage
 
