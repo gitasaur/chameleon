@@ -10,6 +10,10 @@ Visual Regression Testing for Front End Applications
 For use within a test:
 
 ```
+import compare from '@mgrk/chameleon';
+
+...
+
 it('should match vr', async () => {
   const options = {
     testUrl: 'http://localhost:4200',
