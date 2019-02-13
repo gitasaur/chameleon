@@ -14,13 +14,14 @@ import compare from '@mgrk/chameleon';
 
 ...
 
-it('should match vr', async () => {
-  const options = {
-    testUrl: 'http://localhost:4200',
-    masterUrl: 'http://localhost:4201',
-    selector: 'img'
-  };
-
-  expect(await compare(options)).toBe(true);
+describe('Simple First Test for VR', () => {
+    it('should match vr', async (done) => {
+      const options = {
+        testUrl: 'http://localhost:4200',
+        masterUrl: 'http://localhost:4201',
+        selector: 'img'};
+     expect(await compare(options).catch((err)=> {console.log(err.message)}).then).toBeTruthy();
+     done();
+     },50000);
 });
 ```
