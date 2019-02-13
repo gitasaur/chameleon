@@ -28,7 +28,11 @@ export default async function compare(options) {
       if (error) {
         reject(error);
       } else {
-        resolve(diff.hasPassed(result.code));
+        if (result.differences === 0){
+          resolve("Passed with no differences");
+        } else {
+          reject("Failed with "+result.differences);
+        }
       }
     });
   });
