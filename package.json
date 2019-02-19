@@ -1,6 +1,6 @@
 {
   "name": "@mgrk/chameleon",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Visual Regression for Front End Applications",
   "main": "./distribution/index.js",
   "scripts": {
