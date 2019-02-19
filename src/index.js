@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const BlinkDiff = require('blink-diff');
 
-export async function compare(options) {
+export default async function compare(options) {
   const { testUrl, masterUrl, selector, controlPage, viewport } = options;
   const browser = await puppeteer.launch();
 
