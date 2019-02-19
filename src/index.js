@@ -1,74 +1,68 @@
 const puppeteer = require('puppeteer');
 const BlinkDiff = require('blink-diff');
 
-export default async function compare(options) {
-  return new Promise(async (resolve, reject) => {
-    const testUrl = options.testUrl;
-    const masterUrl = options.masterUrl;
-    const selector = options.selector;
+export async function compare(options) {
+  const { testUrl, masterUrl, selector, controlPage, viewport } = options;
+  const browser = await puppeteer.launch();
 
-    const testScreenShot = selector ?
-      await screenshotDOMElement(testUrl, selector) :
-      await getScreenshot(testUrl);
-    const masterScreenShot = selector ?
-      await screenshotDOMElement(masterUrl, selector) :
-      await getScreenshot(masterUrl);
+  const pageUrls = [testUrl, masterUrl];
+  const screenshots = [];
 
-    const diff = new BlinkDiff({
-      imageA: testScreenShot,
-      imageB: masterScreenShot,
+    for (let i = 0; i < pageUrls.length; i++) {
+        let page = await browser.newPage();
 
-      thresholdType: BlinkDiff.THRESHOLD_PERCENT,
-      threshold: 0,
+        if (viewport) {
+            page.setViewport(viewport);
+        }
 
-      imageOutputPath: './diff.png'
+        // Go to URL
+        await page.goto(pageUrls[i], { waitUntil: 'networkidle2' });
+
+        if (controlPage) {
+            await controlPage(page)
+        }
+
+        const screenshot = selector ?
+            await screenshotBySelector(page, selector) :
+            await screenshotPage(page);
+
+        screenshots.push(screenshot);
+    }
+
+    await browser.close();
+    return await compareImages(...screenshots);
+}
+
+export async function compareImages(testImage, masterImage) {
+    return new Promise((resolve, reject) => {
+        const diff = new BlinkDiff({
+            imageA: testImage,
+            imageB: masterImage,
+
+            thresholdType: BlinkDiff.THRESHOLD_PIXEL,
+            threshold: 500,
+
+            imageOutputPath: './diff.png'
+        });
+
+        diff.run((error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(diff.hasPassed(result.code));
+            }
+        });
     });
-
-    diff.run(function (error, result) {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(diff.hasPassed(result.code));
-      }
-    });
-  });
 }
 
-
-export async function getScreenshot(url) {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'networkidle2' });
-  const snap = await page.screenshot();
-  await browser.close();
-
-  return snap;
+export async function screenshotPage(page) {
+  return await page.screenshot({ fullPage: true });
 }
 
-export async function getBrowser() {
-  const browser = await puppeteer.launch();
-  return await browser.newPage();
-}
-
-async function screenshotDOMElement(url, selector) {
-
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto(url);
-
-  const {x, y, width, height} = await page.$eval(selector, el =>
+async function screenshotBySelector(page, selector) {
+  const { x, y, width, height } = await page.$eval(selector, el =>
     JSON.parse(JSON.stringify(el.getBoundingClientRect())) // Hacks on hacks
   );
 
-  const screenshot = await page.screenshot({
-    clip: {
-      x,
-      y,
-      width,
-      height,
-    }
-  });
-
-  await browser.close();
-  return screenshot;
+  return await page.screenshot({ clip: { x, y, width, height } });
 }
