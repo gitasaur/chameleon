@@ -11,6 +11,7 @@ export async function compare(options) {
     for (let i = 0; i < pageUrls.length; i++) {
         let page = await browser.newPage();
 
+        // Set viewport
         if (viewport) {
             page.setViewport(viewport);
         }
@@ -18,6 +19,7 @@ export async function compare(options) {
         // Go to URL
         await page.goto(pageUrls[i], { waitUntil: 'networkidle2' });
 
+        // Apply optional page actions
         if (controlPage) {
             await controlPage(page)
         }
